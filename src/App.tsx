@@ -340,6 +340,7 @@ function App() {
                         </tbody>
                       </table>
                     </div>
+                  </div>
                 </div>
 
                 {/* NEW: Permission Audit Form */}
