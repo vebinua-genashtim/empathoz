@@ -35,6 +35,7 @@ export interface NavigationItem {
   route: string;
   hasSubmenu?: boolean;
   submenu?: NavigationItem[];
+  isDynamic?: boolean;
 }
 
 export interface UserRole {
