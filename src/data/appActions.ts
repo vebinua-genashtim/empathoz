@@ -56,6 +56,13 @@ export const appActions: AppActionsConfig = {
       icon: 'BarChart3',
       route: 'tlms-course-analytics',
       description: 'View training completion and engagement metrics'
+    },
+    {
+      id: 'tlms-learning-request',
+      name: 'Learning Request',
+      icon: 'Calendar',
+      route: 'tlms-learning-request',
+      description: 'Submit a learning request'
     }
   ],
   ees: [
