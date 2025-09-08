@@ -238,8 +238,11 @@ function App() {
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Management Actions</h2>
                   <p className="text-gray-600 mb-6">Quick actions for managing user accounts within the TLMS.</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button className="p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors text-left">
-                      <div className="flex items-center gap-3 mb-2" onClick={() => setShowAddAccountModal(true)}>
+                    <button 
+                      onClick={() => setShowAddAccountModal(true)}
+                      className="p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
                         <Users className="w-5 h-5 text-green-600" />
                         <span className="font-medium text-green-900">Add New Account</span>
                       </div>
