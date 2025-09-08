@@ -22,7 +22,7 @@ interface IntegrationFlowViewerProps {
   onClose: () => void;
 }
 
-type FlowStep = 'ats' | 'onboarding' | 'hrdb' | 'tlms' | 'complete';
+type FlowStep = 'ats' | 'hrdb' | 'onboarding' | 'tlms' | 'complete';
 
 const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState<FlowStep>('ats');
@@ -59,8 +59,27 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
     // Update candidate status to hired
     dataService.updateCandidate(candidate.id, { status: 'hired' });
     
-    // Create onboarding record
-    const success = dataService.createOnboardingRecordFromCandidate(candidate);
+    // Create employee profile first
+    const success = dataService.createEmployeeFromCandidate(candidate);
+    
+    if (success) {
+      refreshData();
+      setCurrentStep('hrdb');
+    }
+    
+    setIsProcessing(false);
+  };
+
+  const handleCreateOnboardingRecord = async () => {
+    if (!employee) return;
+    
+    setIsProcessing(true);
+    
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Create onboarding record from employee
+    const success = dataService.createOnboardingRecordFromEmployee(employee);
     
     if (success) {
       refreshData();
@@ -80,25 +99,6 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
     
     // Complete all onboarding tasks
     const success = dataService.completeOnboardingTasks(newHire.id);
-    
-    if (success) {
-      refreshData();
-      setCurrentStep('hrdb');
-    }
-    
-    setIsProcessing(false);
-  };
-
-  const handleCreateEmployeeProfile = async () => {
-    if (!newHire) return;
-    
-    setIsProcessing(true);
-    
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Create employee profile
-    const success = dataService.createEmployeeFromNewHire(newHire);
     
     if (success) {
       refreshData();
@@ -134,7 +134,7 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
   };
 
   const getStepStatus = (step: FlowStep) => {
-    const stepOrder: FlowStep[] = ['ats', 'onboarding', 'hrdb', 'tlms', 'complete'];
+    const stepOrder: FlowStep[] = ['ats', 'hrdb', 'onboarding', 'tlms', 'complete'];
     const currentIndex = stepOrder.indexOf(currentStep);
     const stepIndex = stepOrder.indexOf(step);
     
@@ -146,8 +146,8 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
   const getStepIcon = (step: FlowStep) => {
     switch (step) {
       case 'ats': return Users;
-      case 'onboarding': return UserPlus;
       case 'hrdb': return Database;
+      case 'onboarding': return UserPlus;
       case 'tlms': return BookOpen;
       case 'complete': return CheckCircle;
     }
@@ -196,13 +196,13 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            {(['ats', 'onboarding', 'hrdb', 'tlms', 'complete'] as FlowStep[]).map((step, index) => {
+            {(['ats', 'hrdb', 'onboarding', 'tlms', 'complete'] as FlowStep[]).map((step, index) => {
               const Icon = getStepIcon(step);
               const status = getStepStatus(step);
               const stepNames = {
                 ats: 'ATS - Hire Candidate',
-                onboarding: 'Onboarding Process',
                 hrdb: 'HR Database',
+                onboarding: 'Onboarding Process',
                 tlms: 'Training Enrollment',
                 complete: 'Flow Complete'
               };
@@ -223,8 +223,8 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
                   </div>
                   {index < 4 && (
                     <div className={`flex-1 h-0.5 mx-4 ${
-                      getStepStatus((['ats', 'onboarding', 'hrdb', 'tlms', 'complete'] as FlowStep[])[index + 1]) === 'completed' || 
-                      getStepStatus((['ats', 'onboarding', 'hrdb', 'tlms', 'complete'] as FlowStep[])[index + 1]) === 'current'
+                      getStepStatus((['ats', 'hrdb', 'onboarding', 'tlms', 'complete'] as FlowStep[])[index + 1]) === 'completed' || 
+                      getStepStatus((['ats', 'hrdb', 'onboarding', 'tlms', 'complete'] as FlowStep[])[index + 1]) === 'current'
                         ? 'bg-green-400' 
                         : 'bg-gray-300'
                     } transition-all duration-300`}></div>
@@ -329,157 +329,58 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
             </div>
           )}
 
-          {/* Step 2: Onboarding Process */}
-          {currentStep === 'onboarding' && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <UserPlus className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Step 2: Complete Onboarding Process</h3>
-                <p className="text-gray-600">The candidate has been hired and an onboarding record has been created. Now complete their onboarding tasks.</p>
-              </div>
-
-              {newHire ? (
-                <div className="bg-white rounded-lg p-6 border border-gray-200 max-w-3xl mx-auto">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xl">
-                        {newHire.firstName.charAt(0)}{newHire.lastName.charAt(0)}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-xl font-semibold text-gray-900">{newHire.firstName} {newHire.lastName}</h4>
-                      <p className="text-gray-600">{newHire.position} • {newHire.department}</p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                          {newHire.status.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                        </span>
-                        <span className="text-sm text-gray-600">Start Date: {new Date(newHire.startDate).toLocaleDateString()}</span>
-                        <span className="text-sm text-gray-600">Manager: {newHire.manager}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Progress */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-gray-600">Onboarding Progress</span>
-                      <span className="font-medium">{Math.round((newHire.completedTasks / newHire.totalTasks) * 100)}% Complete</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div 
-                        className="bg-green-600 h-3 rounded-full transition-all duration-500" 
-                        style={{ width: `${(newHire.completedTasks / newHire.totalTasks) * 100}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{newHire.completedTasks} of {newHire.totalTasks} tasks completed</p>
-                  </div>
-
-                  {/* Onboarding Tasks */}
-                  <div className="mb-6">
-                    <h5 className="text-lg font-semibold text-gray-900 mb-4">Onboarding Tasks</h5>
-                    <div className="space-y-3 max-h-48 overflow-y-auto">
-                      {newHire.onboardingTasks.map(task => (
-                        <div key={task.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            task.status === 'completed' ? 'bg-green-600' :
-                            task.status === 'in-progress' ? 'bg-yellow-600' :
-                            task.status === 'overdue' ? 'bg-red-600' :
-                            'bg-gray-400'
-                          }`}>
-                            {task.status === 'completed' ? (
-                              <CheckCircle className="w-4 h-4 text-white" />
-                            ) : (
-                              <Clock className="w-4 h-4 text-white" />
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">{task.title}</p>
-                            <div className="flex items-center gap-3 text-xs text-gray-600">
-                              <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
-                              <span>Assigned to: {task.assignedTo}</span>
-                              <span className={`px-2 py-1 rounded-full ${
-                                task.priority === 'high' ? 'bg-red-100 text-red-800' :
-                                task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-green-100 text-green-800'
-                              }`}>
-                                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <button
-                      onClick={handleCompleteOnboarding}
-                      disabled={isProcessing || newHire.status === 'completed'}
-                      className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto text-lg font-semibold"
-                    >
-                      {isProcessing ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Completing Onboarding...
-                        </>
-                      ) : newHire.status === 'completed' ? (
-                        <>
-                          <CheckCircle className="w-5 h-5" />
-                          Onboarding Completed
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-5 h-5" />
-                          Complete All Onboarding Tasks
-                        </>
-                      )}
-                    </button>
-                    <p className="text-sm text-gray-500 mt-2">
-                      This will mark all onboarding tasks as completed and update the status
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <UserPlus className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Onboarding Record Found</h4>
-                  <p className="text-gray-600">Please complete Step 1 first to create an onboarding record.</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 3: HR Database */}
+          {/* Step 2: HR Database */}
           {currentStep === 'hrdb' && (
             <div className="space-y-6">
               <div className="text-center">
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Database className="w-8 h-8 text-purple-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Step 3: Create Employee Profile in HRDB</h3>
-                <p className="text-gray-600">Onboarding is complete! Now create a full employee profile in the HR Database.</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Step 2: Create Employee Profile in HRDB</h3>
+                <p className="text-gray-600">The candidate has been hired! Now create their official employee profile in the HR Database.</p>
               </div>
 
-              {newHire && newHire.status === 'completed' ? (
-                <div className="bg-white rounded-lg p-6 border border-gray-200 max-w-2xl mx-auto">
+              {candidate && candidate.status === 'hired' ? (
+                <div className="bg-white rounded-lg p-6 border border-gray-200 max-w-3xl mx-auto">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                       <span className="text-white font-bold text-xl">
-                        {newHire.firstName.charAt(0)}{newHire.lastName.charAt(0)}
+                        {candidate.firstName.charAt(0)}{candidate.lastName.charAt(0)}
                       </span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-xl font-semibold text-gray-900">{newHire.firstName} {newHire.lastName}</h4>
-                      <p className="text-gray-600">{newHire.position} • {newHire.department}</p>
+                      <h4 className="text-xl font-semibold text-gray-900">{candidate.firstName} {candidate.lastName}</h4>
+                      <p className="text-gray-600">{candidate.position} • {candidate.department}</p>
                       <div className="flex items-center gap-3 mt-2">
                         <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                          Onboarding Completed
+                          Hired - Ready for HRDB
                         </span>
-                        <span className="text-sm text-gray-600">Ready for HRDB</span>
+                        <span className="text-sm text-gray-600">Experience: {candidate.experience} years</span>
+                        <span className="text-sm text-gray-600">Salary: ${candidate.salary?.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h5 className="font-semibold text-blue-900 mb-3">Candidate Information</h5>
+                      <div className="space-y-2 text-sm text-blue-800">
+                        <p><strong>Email:</strong> {candidate.email}</p>
+                        <p><strong>Phone:</strong> {candidate.phone}</p>
+                        <p><strong>Location:</strong> {candidate.city}, {candidate.country}</p>
+                        <p><strong>Source:</strong> {candidate.source.charAt(0).toUpperCase() + candidate.source.slice(1)}</p>
+                        <p><strong>Applied:</strong> {new Date(candidate.appliedDate).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h5 className="font-semibold text-purple-900 mb-3">Employee Profile Creation</h5>
+                      <div className="space-y-2 text-sm text-purple-800">
+                        <p>✓ Personal information transfer</p>
+                        <p>✓ Contact details setup</p>
+                        <p>✓ Position and department assignment</p>
+                        <p>✓ Salary and benefits configuration</p>
+                        <p>✓ Manager assignment</p>
                       </div>
                     </div>
                   </div>
@@ -487,25 +388,16 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
                   <div className="bg-green-50 p-4 rounded-lg mb-6">
                     <div className="flex items-center gap-2 mb-2">
                       <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="font-medium text-green-900">Onboarding Summary</span>
+                      <span className="font-medium text-green-900">Ready for Employee Profile Creation</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-green-800">
-                      <div>
-                        <p>✓ All {newHire.totalTasks} tasks completed</p>
-                        <p>✓ Documentation submitted</p>
-                        <p>✓ Equipment assigned</p>
-                      </div>
-                      <div>
-                        <p>✓ Training completed</p>
-                        <p>✓ Access granted</p>
-                        <p>✓ Manager meetings held</p>
-                      </div>
-                    </div>
+                    <p className="text-sm text-green-800">
+                      All candidate information is ready to be transferred to create a comprehensive employee profile in the HR Database.
+                    </p>
                   </div>
 
                   <div className="text-center">
                     <button
-                      onClick={handleCreateEmployeeProfile}
+                      onClick={handleCreateOnboardingRecord}
                       disabled={isProcessing}
                       className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto text-lg font-semibold"
                     >
@@ -522,7 +414,7 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
                       )}
                     </button>
                     <p className="text-sm text-gray-500 mt-2">
-                      This will create a complete employee record with all onboarding data
+                      This will create a complete employee record with all candidate data
                     </p>
                   </div>
                 </div>
@@ -531,28 +423,28 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Database className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">Onboarding Not Complete</h4>
-                  <p className="text-gray-600">Please complete Step 2 first to finish the onboarding process.</p>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Hired Candidate Found</h4>
+                  <p className="text-gray-600">Please complete Step 1 first to hire a candidate.</p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Step 4: TLMS Training Enrollment */}
-          {currentStep === 'tlms' && (
+          {/* Step 3: Onboarding Process */}
+          {currentStep === 'onboarding' && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-8 h-8 text-orange-600" />
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <UserPlus className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Step 4: Enroll in Mandatory Training</h3>
-                <p className="text-gray-600">Employee profile created! Now enroll them in mandatory training courses through TLMS.</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Step 3: Begin Onboarding Process</h3>
+                <p className="text-gray-600">Employee profile created! Now start the structured onboarding process with tasks and milestones.</p>
               </div>
 
               {employee ? (
                 <div className="bg-white rounded-lg p-6 border border-gray-200 max-w-3xl mx-auto">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
                       <span className="text-white font-bold text-xl">
                         {employee.firstName.charAt(0)}{employee.lastName.charAt(0)}
                       </span>
@@ -578,6 +470,106 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
                         <p><strong>Hire Date:</strong> {new Date(employee.hireDate).toLocaleDateString()}</p>
                         <p><strong>Salary:</strong> ${employee.salary?.toLocaleString()}</p>
                         <p><strong>Manager:</strong> {employee.managerId}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h5 className="font-semibold text-green-900 mb-3">Onboarding Tasks Ready</h5>
+                      <div className="space-y-2 text-sm text-green-800">
+                        <p>📋 Documentation collection</p>
+                        <p>💻 Equipment assignment</p>
+                        <p>🎓 Training enrollment</p>
+                        <p>🤝 Team introductions</p>
+                        <p>📅 Manager meetings</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-green-50 p-4 rounded-lg mb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span className="font-medium text-green-900">HRDB Profile Summary</span>
+                    </div>
+                    <p className="text-sm text-green-800">
+                      Employee profile has been successfully created in the HR Database with all candidate information transferred. Ready to begin structured onboarding process.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <button
+                      onClick={handleCreateOnboardingRecord}
+                      disabled={isProcessing}
+                      className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto text-lg font-semibold"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Creating Onboarding Record...
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-5 h-5" />
+                          Begin Onboarding Process
+                        </>
+                      )}
+                    </button>
+                    <p className="text-sm text-gray-500 mt-2">
+                      This will create an onboarding record and assign role-specific tasks
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <UserPlus className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Employee Profile Found</h4>
+                  <p className="text-gray-600">Please complete Step 2 first to create the employee profile.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 4: TLMS Training Enrollment */}
+          {currentStep === 'tlms' && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="w-8 h-8 text-orange-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Step 4: Enroll in Mandatory Training</h3>
+                <p className="text-gray-600">Onboarding is underway! Now enroll them in mandatory training courses through TLMS.</p>
+              </div>
+
+              {newHire && newHire.status === 'completed' ? (
+                <div className="bg-white rounded-lg p-6 border border-gray-200 max-w-3xl mx-auto">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-xl">
+                        {newHire.firstName.charAt(0)}{newHire.lastName.charAt(0)}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-xl font-semibold text-gray-900">{newHire.firstName} {newHire.lastName}</h4>
+                      <p className="text-gray-600">{newHire.position} • {newHire.department}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                          Onboarding Completed
+                        </span>
+                        <span className="text-sm text-gray-600">Ready for Training</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h5 className="font-semibold text-blue-900 mb-3">Onboarding Summary</h5>
+                      <div className="space-y-2 text-sm text-blue-800">
+                        <p>✓ All {newHire.totalTasks} tasks completed</p>
+                        <p>✓ Documentation submitted</p>
+                        <p>✓ Equipment assigned</p>
+                        <p>✓ Access granted</p>
+                        <p>✓ Manager meetings held</p>
                       </div>
                     </div>
 
@@ -623,10 +615,10 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
               ) : (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Database className="w-8 h-8 text-gray-400" />
+                    <UserPlus className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Employee Profile Found</h4>
-                  <p className="text-gray-600">Please complete Step 3 first to create the employee profile.</p>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">Onboarding Not Complete</h4>
+                  <p className="text-gray-600">Please complete Step 3 first to finish the onboarding process.</p>
                 </div>
               )}
             </div>
@@ -654,20 +646,20 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
                   <p className="text-sm text-blue-800">Candidate hired and status updated</p>
                 </div>
 
-                <div className="bg-green-50 p-6 rounded-lg text-center">
-                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <UserPlus className="w-6 h-6 text-white" />
-                  </div>
-                  <h4 className="font-semibold text-green-900 mb-2">Onboarding</h4>
-                  <p className="text-sm text-green-800">All onboarding tasks completed</p>
-                </div>
-
                 <div className="bg-purple-50 p-6 rounded-lg text-center">
                   <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Database className="w-6 h-6 text-white" />
                   </div>
                   <h4 className="font-semibold text-purple-900 mb-2">HRDB</h4>
                   <p className="text-sm text-purple-800">Employee profile created</p>
+                </div>
+
+                <div className="bg-green-50 p-6 rounded-lg text-center">
+                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <UserPlus className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-semibold text-green-900 mb-2">Onboarding</h4>
+                  <p className="text-sm text-green-800">All onboarding tasks completed</p>
                 </div>
 
                 <div className="bg-orange-50 p-6 rounded-lg text-center">
@@ -684,15 +676,15 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
                 <div className="space-y-3 text-sm text-gray-700">
                   <div className="flex items-center gap-3">
                     <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
-                    <p><strong>ATS Integration:</strong> Candidate status changed from 'offer' to 'hired' and onboarding record created automatically</p>
+                    <p><strong>ATS Integration:</strong> Candidate status changed from 'offer' to 'hired' and prepared for employee profile creation</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                    <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                    <p><strong>HRDB Integration:</strong> Complete employee profile created with all candidate data transferred and official employee ID assigned</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
                     <p><strong>Onboarding Automation:</strong> Role-specific tasks assigned based on position and department, all tasks completed</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
-                    <p><strong>HRDB Integration:</strong> Complete employee profile created with all onboarding data transferred</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">4</div>
@@ -721,7 +713,7 @@ const IntegrationFlowViewer: React.FC<IntegrationFlowViewerProps> = ({ isOpen, o
         {currentStep !== 'complete' && (
           <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
             <div className="text-sm text-gray-600">
-              Step {(['ats', 'onboarding', 'hrdb', 'tlms'].indexOf(currentStep) + 1)} of 4
+              Step {(['ats', 'hrdb', 'onboarding', 'tlms'].indexOf(currentStep) + 1)} of 4
             </div>
             <div className="text-sm text-gray-500">
               Follow the integration workflow step by step

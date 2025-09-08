@@ -1392,27 +1392,56 @@ export const dataService = {
   getIntegrationFlowCandidate: () => {
     return mockCandidates.find(c => c.status === 'offer') || null;
   },
-  getIntegrationFlowNewHire: () => {
-    return mockNewHires.find(h => h.candidateId) || null;
-  },
   getIntegrationFlowEmployee: () => {
     return mockEmployees.find(e => e.id === 'integration-employee') || null;
   },
-  createOnboardingRecordFromCandidate: (candidate: Candidate) => {
-    const newHire: NewHire = {
-      id: generateId(),
+  getIntegrationFlowNewHire: () => {
+    return mockNewHires.find(h => h.candidateId) || null;
+  },
+  createEmployeeFromCandidate: (candidate: Candidate) => {
+    const newEmployee: Employee = {
+      id: 'integration-employee',
       firstName: candidate.firstName,
       lastName: candidate.lastName,
       email: candidate.email,
-      position: candidate.position,
+      phone: candidate.phone,
       department: candidate.department,
-      startDate: new Date().toISOString().split('T')[0],
+      position: candidate.position,
+      hireDate: new Date().toISOString().split('T')[0],
+      status: 'active',
+      salary: candidate.salary,
+      city: candidate.city,
+      country: candidate.country,
+      experience: candidate.experience,
+      cvUrl: candidate.cvUrl,
+      certificationsUrl: candidate.certificationsUrl,
+      portfolioUrl: candidate.portfolioUrl,
+      notes: candidate.notes
+    };
+    
+    const existingIndex = mockEmployees.findIndex(e => e.id === 'integration-employee');
+    if (existingIndex !== -1) {
+      mockEmployees[existingIndex] = newEmployee;
+    } else {
+      mockEmployees.push(newEmployee);
+    }
+    return true;
+  },
+  createOnboardingRecordFromEmployee: (employee: Employee) => {
+    const newHire: NewHire = {
+      id: generateId(),
+      firstName: employee.firstName,
+      lastName: employee.lastName,
+      email: employee.email,
+      position: employee.position,
+      department: employee.department,
+      startDate: employee.hireDate,
       manager: 'Sarah Wilson',
       status: 'pre-boarding',
       completedTasks: 0,
       totalTasks: 12,
       onboardingTasks: [],
-      candidateId: candidate.id
+      candidateId: employee.id
     };
     mockNewHires.push(newHire);
     return true;
@@ -1425,29 +1454,6 @@ export const dataService = {
       return true;
     }
     return false;
-  },
-  createEmployeeFromNewHire: (newHire: NewHire) => {
-    const newEmployee: Employee = {
-      id: 'integration-employee',
-      firstName: newHire.firstName,
-      lastName: newHire.lastName,
-      email: newHire.email,
-      phone: '+1 (555) 123-4567',
-      department: newHire.department,
-      position: newHire.position,
-      hireDate: newHire.startDate,
-      status: 'active',
-      salary: 85000,
-      managerId: '2'
-    };
-    
-    const existingIndex = mockEmployees.findIndex(e => e.id === 'integration-employee');
-    if (existingIndex !== -1) {
-      mockEmployees[existingIndex] = newEmployee;
-    } else {
-      mockEmployees.push(newEmployee);
-    }
-    return true;
   },
   enrollEmployeeInMandatoryTraining: (employeeId: string, department: string) => {
     // Mock enrollment logic
