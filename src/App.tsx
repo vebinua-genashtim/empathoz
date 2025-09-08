@@ -27,6 +27,22 @@ function App() {
   const [activeSection, setActiveSection] = useState('my-apps');
   const [hrModules, setHrModules] = useState<HRModule[]>(HRData.hrModules);
   const [showIntegrationFlow, setShowIntegrationFlow] = useState(false);
+  const [accountSettings, setAccountSettings] = useState<AccountSetting[]>([
+    { id: '1', email: 'john.doe@example.com', name: 'John Doe', accountLevel: 'admin' },
+    { id: '2', email: 'jane.smith@example.com', name: 'Jane Smith', accountLevel: 'hr' },
+    { id: '3', email: 'mike.johnson@example.com', name: 'Mike Johnson', accountLevel: 'accounting' },
+    { id: '4', email: 'sarah.wilson@example.com', name: 'Sarah Wilson', accountLevel: 'mancom' },
+    { id: '5', email: 'emily.rodriguez@example.com', name: 'Emily Rodriguez', accountLevel: 'gcoo' },
+  ]);
+
+  interface AccountSetting {
+    id: string;
+    email: string;
+    name: string;
+    accountLevel: string;
+  }
+
+  const generateUniqueId = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
 
   // State for Add New Account form in TLMS Account Settings
   const [newAccount, setNewAccount] = useState({
@@ -40,12 +56,30 @@ function App() {
     setNewAccount(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleEditAccount = (account: AccountSetting) => {
+    console.log('Editing account:', account);
+    alert(`Editing account for ${account.name}. (Simulated)`);
+    // In a real application, you would open a form to edit this account.
+  };
+
+  const handleDeleteAccount = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this account?')) {
+      setAccountSettings(prev => prev.filter(account => account.id !== id));
+      alert('Account deleted successfully! (Simulated)');
+    }
+  };
+
   const handleAddAccountSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Simulate adding the account
     console.log('Adding new account:', newAccount);
     alert(`Account for ${newAccount.name} (${newAccount.email}) with level ${newAccount.accountLevel} added successfully! (Simulated)`);
     // Clear form
+    const newId = generateUniqueId();
+    setAccountSettings(prev => [
+      ...prev,
+      { id: newId, ...newAccount }
+    ]);
     setNewAccount({
       email: '',
       name: '',
@@ -253,6 +287,59 @@ function App() {
                       <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Add Account</button>
                     </form>
                   </div>
+                </div>
+
+                {/* Account Settings Table */}
+                <div className="border-t border-gray-200 pt-8 mb-8">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Existing Account Settings</h2>
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              ID
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Email
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Name
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Account Level
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {accountSettings.map((account) => (
+                            <tr key={account.id}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{account.id}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{account.email}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{account.name}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{account.accountLevel}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button
+                                  onClick={() => handleEditAccount(account)}
+                                  className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteAccount(account.id)}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                 </div>
 
                 {/* NEW: Permission Audit Form */}
