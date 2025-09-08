@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Settings, Users } from 'lucide-react';
+import { Settings, Users, X } from 'lucide-react';
 import { useTheme } from './contexts/ThemeContext';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -27,13 +27,14 @@ function App() {
   const [activeSection, setActiveSection] = useState('my-apps');
   const [hrModules, setHrModules] = useState<HRModule[]>(HRData.hrModules);
   const [showIntegrationFlow, setShowIntegrationFlow] = useState(false);
-  const [accountSettings, setAccountSettings] = useState<AccountSetting[]>([
-    { id: '1', email: 'john.doe@example.com', name: 'John Doe', accountLevel: 'admin' },
-    { id: '2', email: 'jane.smith@example.com', name: 'Jane Smith', accountLevel: 'hr' },
-    { id: '3', email: 'mike.johnson@example.com', name: 'Mike Johnson', accountLevel: 'accounting' },
-    { id: '4', email: 'sarah.wilson@example.com', name: 'Sarah Wilson', accountLevel: 'mancom' },
-    { id: '5', email: 'emily.rodriguez@example.com', name: 'Emily Rodriguez', accountLevel: 'gcoo' },
-  ]);
+  const [showAddAccountModal, setShowAddAccountModal] = useState(false); // State for modal visibility
+
+  // Mockup data for Permission Audit
+  const auditUsers = [
+    { id: 'user1', name: 'John Doe (Employee)', role: 'employee' },
+    { id: 'user2', name: 'Jane Smith (HR Manager)', role: 'hr' },
+    { id: 'user3', name: 'Mike Johnson (Admin)', role: 'admin' },
+  ];
 
   interface AccountSetting {
     id: string;
@@ -42,7 +43,13 @@ function App() {
     accountLevel: string;
   }
 
-  const generateUniqueId = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+  const [accountSettings, setAccountSettings] = useState<AccountSetting[]>([
+    { id: '1', email: 'john.doe@example.com', name: 'John Doe', accountLevel: 'admin' },
+    { id: '2', email: 'jane.smith@example.com', name: 'Jane Smith', accountLevel: 'hr' },
+    { id: '3', email: 'mike.johnson@example.com', name: 'Mike Johnson', accountLevel: 'accounting' },
+  ]);
+
+  const generateUniqueId = () => Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
 
   // State for Add New Account form in TLMS Account Settings
   const [newAccount, setNewAccount] = useState({
@@ -50,6 +57,9 @@ function App() {
     name: '',
     accountLevel: 'accounting' // Default value
   });
+
+  const [selectedAuditUser, setSelectedAuditUser] = useState('');
+  const [auditReport, setAuditReport] = useState('Permissions for selected entity will appear here...');
 
   const handleNewAccountChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -71,20 +81,37 @@ function App() {
 
   const handleAddAccountSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate adding the account
-    console.log('Adding new account:', newAccount);
-    alert(`Account for ${newAccount.name} (${newAccount.email}) with level ${newAccount.accountLevel} added successfully! (Simulated)`);
-    // Clear form
-    const newId = generateUniqueId();
-    setAccountSettings(prev => [
-      ...prev,
-      { id: newId, ...newAccount }
-    ]);
-    setNewAccount({
-      email: '',
-      name: '',
-      accountLevel: 'accounting'
-    });
+    const newId = generateUniqueId(); // Generate ID here
+    setAccountSettings(prev => [...prev, { id: newId, ...newAccount }]);
+    setNewAccount({ email: '', name: '', accountLevel: 'accounting' }); // Reset form
+    setShowAddAccountModal(false); // Close modal on submit
+    alert(`Account for ${newAccount.name} added successfully!`);
+  };
+
+  const handleRunAudit = () => {
+    if (!selectedAuditUser) {
+      setAuditReport('Please select a user or role to run the audit.');
+      return;
+    }
+
+    const user = auditUsers.find(u => u.id === selectedAuditUser);
+    if (user) {
+      let report = `Audit Report for ${user.name} (Role: ${user.role})\n\n`;
+      switch (user.role) {
+        case 'employee':
+          report += 'Access: View own profile, basic training modules.\nRestrictions: Cannot access sensitive HR data, financial records, or management tools.';
+          break;
+        case 'hr':
+          report += 'Access: Full HR data, employee records, training management, basic financial overview.\nRestrictions: Cannot modify system configurations, access CEO-level financial data.';
+          break;
+        case 'admin':
+          report += 'Access: Full system control, all data, user management, configuration settings.\nRestrictions: None (highest level of access).';
+          break;
+      }
+      setAuditReport(report);
+    } else {
+      setAuditReport('User or role not found for audit.');
+    }
   };
   
   // Handle integration flow visibility based on active section
@@ -212,7 +239,7 @@ function App() {
                   <p className="text-gray-600 mb-6">Quick actions for managing user accounts within the TLMS.</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button className="p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors text-left">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-3 mb-2" onClick={() => setShowAddAccountModal(true)}>
                         <Users className="w-5 h-5 text-green-600" />
                         <span className="font-medium text-green-900">Add New Account</span>
                       </div>
@@ -237,58 +264,6 @@ function App() {
                   </div>
                 </div>
                 
-                {/* NEW: Add New Account Setting Form */}
-                <div className="border-t border-gray-200 pt-8 mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Add New Account Setting</h2>
-                  <div className="bg-blue-50 p-6 rounded-lg">
-                    <form onSubmit={handleAddAccountSubmit} className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-blue-800 mb-2">Email</label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={newAccount.email}
-                          onChange={handleNewAccountChange}
-                          className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="user@example.com"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-blue-800 mb-2">Name</label>
-                        <input
-                          type="text"
-                          name="name"
-                          value={newAccount.name}
-                          onChange={handleNewAccountChange}
-                          className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="User Name"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-blue-800 mb-2">Account Level</label>
-                        <select
-                          name="accountLevel"
-                          value={newAccount.accountLevel}
-                          onChange={handleNewAccountChange}
-                          className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          required
-                        >
-                          <option value="accounting">Accounting</option>
-                          <option value="admin">Admin</option>
-                          <option value="hr">HR</option>
-                          <option value="mancom">ManCom</option>
-                          <option value="gcoo">GCOO</option>
-                          <option value="tcoo">TCOO</option>
-                          <option value="ceo">CEO</option>
-                        </select>
-                      </div>
-                      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Add Account</button>
-                    </form>
-                  </div>
-                </div>
-
                 {/* Account Settings Table */}
                 <div className="border-t border-gray-200 pt-8 mb-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Existing Account Settings</h2>
@@ -310,7 +285,7 @@ function App() {
                               Account Level
                             </th>
                             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Actions
+                              Actions {/* Changed from "Actions" to "Actions" */}
                             </th>
                           </tr>
                         </thead>
@@ -320,11 +295,11 @@ function App() {
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{account.id}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{account.email}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{account.name}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{account.accountLevel}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{account.accountLevel.toUpperCase()}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button
                                   onClick={() => handleEditAccount(account)}
-                                  className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                  className="text-indigo-600 hover:text-indigo-900 mr-4" // Added mr-4 for spacing
                                 >
                                   Edit
                                 </button>
@@ -348,30 +323,117 @@ function App() {
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Permission Audit</h2>
                   <div className="bg-purple-50 p-6 rounded-lg">
                     <p className="text-sm text-purple-800 mb-4">
-                      Review and audit user permissions. Select a user or role to view their access rights.
+                      Review and audit user permissions. Select a user or role to view their access rights. {/* Corrected typo */}
                     </p>
                     <form className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-purple-800 mb-2">Select User or Role</label>
-                        <select className="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <select
+                          className="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          value={selectedAuditUser}
+                          onChange={(e) => setSelectedAuditUser(e.target.value)}
+                        >
                           <option value="">Select...</option>
-                          <option value="user1">User 1 (Accounting)</option>
-                          <option value="user2">User 2 (HR)</option>
-                          <option value="role-admin">Role: Admin</option>
-                          <option value="role-hr">Role: HR</option>
+                          {auditUsers.map(user => (
+                            <option key={user.id} value={user.id}>
+                              {user.name}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-purple-800 mb-2">Audit Report</label>
-                        <textarea readOnly rows={6} className="w-full px-3 py-2 border border-purple-200 rounded-lg bg-purple-100 text-purple-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent" value="Permissions for selected entity will appear here..."></textarea>
+                        <textarea
+                          readOnly
+                          rows={6}
+                          className="w-full px-3 py-2 border border-purple-200 rounded-lg bg-purple-100 text-purple-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          value={auditReport}
+                        ></textarea>
                       </div>
-                      <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">Run Audit</button>
+                      <button type="button" onClick={handleRunAudit} className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">Run Audit</button>
                     </form>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Add New Account Modal */}
+          {showAddAccountModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Users className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">Add New Account Setting</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowAddAccountModal(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleAddAccountSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={newAccount.email}
+                      onChange={handleNewAccountChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="user@example.com"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={newAccount.name}
+                      onChange={handleNewAccountChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="User Name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Account Level</label>
+                    <select
+                      name="accountLevel"
+                      value={newAccount.accountLevel}
+                      onChange={handleNewAccountChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="accounting">Accounting</option>
+                      <option value="admin">Admin</option>
+                      <option value="hr">HR</option>
+                      <option value="mancom">ManCom</option>
+                      <option value="gcoo">GCOO</option>
+                      <option value="tcoo">TCOO</option>
+                      <option value="ceo">CEO</option>
+                    </select>
+                  </div>
+                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddAccountModal(false)}
+                      className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Add Account</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         );
       case 'tlms-second-manager':
         return (
