@@ -220,6 +220,15 @@ function App() {
       case 'ats-advanced-export':
         return (
           <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Advanced Candidate Export</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Advanced export interface for candidate data would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'tlms-account-settings':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">TLMS Account Settings</h1>
             <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
               <div className="max-w-4xl">
@@ -259,7 +268,7 @@ function App() {
                               Account Level
                             </th>
                             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Actions {/* Changed from "Actions" to "Actions" */}
+                              Actions
                             </th>
                           </tr>
                         </thead>
@@ -273,7 +282,7 @@ function App() {
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button
                                   onClick={() => handleEditAccount(account)}
-                                  className="text-indigo-600 hover:text-indigo-900 mr-4" // Added mr-4 for spacing
+                                  className="text-indigo-600 hover:text-indigo-900 mr-4"
                                 >
                                   Edit
                                 </button>
@@ -297,7 +306,7 @@ function App() {
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Permission Audit</h2>
                   <div className="bg-purple-50 p-6 rounded-lg">
                     <p className="text-sm text-purple-800 mb-4">
-                      Review and audit user permissions. Select a user or role to view their access rights. {/* Corrected typo */}
+                      Review and audit user permissions. Select a user or role to view their access rights.
                     </p>
                     <form className="space-y-4">
                       <div>
