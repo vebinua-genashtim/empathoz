@@ -9,6 +9,15 @@ export interface HRModule {
   lastUpdated?: string;
   userRole?: string[];
   isEnabled?: boolean;
+  subItems?: AppAction[];
+}
+
+export interface AppAction {
+  id: string;
+  name: string;
+  icon: string;
+  route: string;
+  description?: string;
 }
 
 export interface User {

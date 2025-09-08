@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import * as Icons from 'lucide-react';
 import { useTheme } from './contexts/ThemeContext';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -19,6 +18,7 @@ import PublicSurveyPage from './components/PublicSurveyPage';
 import IntegrationFlowViewer from './components/IntegrationFlowViewer';
 import * as HRData from './data/hrModules';
 import { HRModule } from './types';
+import { getActionsForModule } from './data/appActions';
 
 function App() {
   const { theme } = useTheme();
@@ -110,6 +110,37 @@ function App() {
         return <LeaveManagement />;
       case 'notifications-page':
         return <NotificationsPage currentUser="HR Manager" />;
+      
+      // ATS Actions
+      case 'ats-add-candidate':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Add New Candidate</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Quick candidate addition form would be displayed here. This would be a streamlined version of the candidate form from the main ATS module.</p>
+            </div>
+          </div>
+        );
+      case 'ats-manage-departments':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Manage Departments</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Department management interface would be displayed here, allowing quick access to add, edit, or remove departments.</p>
+            </div>
+          </div>
+        );
+      case 'ats-advanced-export':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Advanced Candidate Export</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Advanced export interface would be displayed here with detailed filtering options for candidate data.</p>
+            </div>
+          </div>
+        );
+      
+      // TLMS Actions
       case 'tlms-account-settings':
         return (
           <div className="flex-1 bg-gray-50 p-8">
@@ -123,7 +154,7 @@ function App() {
                   <div className="bg-blue-50 p-6 rounded-lg">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                        <Icons.Settings className="w-5 h-5 text-white" />
+                        <Settings className="w-5 h-5 text-white" />
                       </div>
                       <h3 className="text-lg font-semibold text-blue-900">Account Configuration</h3>
                     </div>
@@ -174,7 +205,7 @@ function App() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button className="p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors text-left">
                       <div className="flex items-center gap-3 mb-2">
-                        <Icons.UserPlus className="w-5 h-5 text-green-600" />
+                        <Users className="w-5 h-5 text-green-600" />
                         <span className="font-medium text-green-900">Add New Account</span>
                       </div>
                       <p className="text-sm text-green-700">Create new user account with appropriate permissions</p>
@@ -182,7 +213,7 @@ function App() {
                     
                     <button className="p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-left">
                       <div className="flex items-center gap-3 mb-2">
-                        <Icons.Users className="w-5 h-5 text-blue-600" />
+                        <Users className="w-5 h-5 text-blue-600" />
                         <span className="font-medium text-blue-900">Bulk Import</span>
                       </div>
                       <p className="text-sm text-blue-700">Import multiple accounts from CSV or Excel file</p>
@@ -190,7 +221,7 @@ function App() {
                     
                     <button className="p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors text-left">
                       <div className="flex items-center gap-3 mb-2">
-                        <Icons.Shield className="w-5 h-5 text-purple-600" />
+                        <Settings className="w-5 h-5 text-purple-600" />
                         <span className="font-medium text-purple-900">Permission Audit</span>
                       </div>
                       <p className="text-sm text-purple-700">Review and audit user permissions and access levels</p>
@@ -214,7 +245,7 @@ function App() {
                   <div className="bg-purple-50 p-6 rounded-lg">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
-                        <Icons.Users className="w-5 h-5 text-white" />
+                        <Users className="w-5 h-5 text-white" />
                       </div>
                       <h3 className="text-lg font-semibold text-purple-900">Manager Hierarchy</h3>
                     </div>
@@ -320,6 +351,208 @@ function App() {
             </div>
           </div>
         );
+      case 'tlms-course-analytics':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">TLMS Course Analytics</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Course analytics and training metrics dashboard would be displayed here.</p>
+            </div>
+          </div>
+        );
+      
+      // EES Actions
+      case 'ees-survey-builder':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Survey Builder</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Advanced survey builder interface would be displayed here for creating custom engagement surveys.</p>
+            </div>
+          </div>
+        );
+      case 'ees-analytics-dashboard':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Engagement Analytics Dashboard</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Comprehensive engagement analytics and trend analysis would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'ees-email-campaigns':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Email Campaigns</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Email campaign management for survey invitations would be displayed here.</p>
+            </div>
+          </div>
+        );
+      
+      // HRDB Actions
+      case 'hrdb-add-employee':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Add New Employee</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Quick employee addition form would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'hrdb-bulk-import':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Bulk Employee Import</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Bulk import interface for employee data would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'hrdb-file-access-control':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">File Access Control</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">File access control management interface would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'hrdb-advanced-export':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Advanced Employee Export</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Advanced export interface for employee data would be displayed here.</p>
+            </div>
+          </div>
+        );
+      
+      // Claims Actions
+      case 'claims-submit-claim':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Submit New Claim</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Quick claim submission form would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'claims-approval-dashboard':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Claims Approval Dashboard</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Claims approval dashboard would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'claims-workflow-rules':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Claims Workflow Rules</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Claims workflow rules configuration would be displayed here.</p>
+            </div>
+          </div>
+        );
+      
+      // Leave Actions
+      case 'leave-new-request':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">New Leave Request</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Quick leave request form would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'leave-approval-dashboard':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Leave Approval Dashboard</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Leave approval dashboard would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'leave-configuration':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Leave Configuration</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Leave configuration settings would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'leave-calendar-view':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Leave Calendar View</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Calendar view of all leave requests would be displayed here.</p>
+            </div>
+          </div>
+        );
+      
+      // Onboarding Actions
+      case 'onboarding-add-hire':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Add New Hire</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Quick new hire addition form would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'onboarding-task-templates':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Onboarding Task Templates</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Task template management interface would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'onboarding-progress-tracking':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Onboarding Progress Tracking</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Progress tracking dashboard for all new hires would be displayed here.</p>
+            </div>
+          </div>
+        );
+      
+      // Core Communications Actions
+      case 'core-new-announcement':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">New Announcement</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Quick announcement creation form would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'core-event-management':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Event Management</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Company event management interface would be displayed here.</p>
+            </div>
+          </div>
+        );
+      case 'core-notification-center':
+        return (
+          <div className="flex-1 bg-gray-50 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Notification Center</h1>
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+              <p className="text-gray-600">Internal notification management would be displayed here.</p>
+            </div>
+          </div>
+        );
+
       default:
         return <MyApps hrModules={hrModules} onToggleModuleVisibility={toggleModuleVisibility} />;
     }

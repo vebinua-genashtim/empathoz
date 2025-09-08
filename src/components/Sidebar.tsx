@@ -15,6 +15,7 @@ import * as Icons from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import NotificationCenter from './NotificationCenter';
 import { dataService } from '../services/dataService';
+import { getActionsForModule, hasActions } from '../data/appActions';
 
 interface SidebarProps {
   activeItem: string;
@@ -23,7 +24,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick, hrModules }) => {
-  const [showMyAppsDropdown, setShowMyAppsDropdown] = React.useState(false);
+  const [expandedMenus, setExpandedMenus] = React.useState<{ [key: string]: boolean }>({});
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [currentUser] = React.useState('HR Manager'); // In real app, this would come from auth context
   const [unreadCount, setUnreadCount] = React.useState(0);
@@ -40,6 +41,17 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick, hrModules })
     return () => clearInterval(interval);
   }, [currentUser]);
 
+  // Get the current active module to show relevant actions
+  const activeModule = hrModules.find(module => module.id === activeItem);
+  const activeAppActions = activeModule ? getActionsForModule(activeModule.id) : [];
+
+  const toggleMenu = (menuId: string) => {
+    setExpandedMenus(prev => ({
+      ...prev,
+      [menuId]: !prev[menuId]
+    }));
+  };
+
   const navigationItems = [
     { id: 'dashboard', name: 'Dashboard', icon: Home },
     { id: 'my-apps', name: 'My Apps', icon: Grid3X3 },
@@ -50,15 +62,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick, hrModules })
     { id: 'help', name: 'Help & Support', icon: HelpCircle },
   ];
 
-  const handleMyAppsClick = () => {
-    setShowMyAppsDropdown(!showMyAppsDropdown);
-    onItemClick('my-apps');
-  };
-
-  const handleModuleClick = (moduleId: string) => {
-    onItemClick(moduleId);
-  };
-
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
       // In a real app, this would clear authentication tokens and redirect
@@ -67,6 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick, hrModules })
       window.location.reload();
     }
   };
+
   const enabledModules = hrModules.filter(module => module.isEnabled);
 
   return (
@@ -106,12 +110,18 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick, hrModules })
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;
+            const hasDropdown = item.id === 'my-apps';
             
             return (
               <React.Fragment key={item.id}>
                 <li>
                   <button
-                    onClick={item.id === 'my-apps' ? handleMyAppsClick : () => onItemClick(item.id)}
+                    onClick={() => {
+                      if (hasDropdown) {
+                        toggleMenu(item.id);
+                      }
+                      onItemClick(item.id);
+                    }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                       isActive 
                         ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
@@ -120,24 +130,28 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick, hrModules })
                   >
                     <Icon className="w-5 h-5" />
                     <span className="font-medium">{item.name}</span>
-                    {item.id === 'my-apps' && (
+                    {hasDropdown && (
                       <ChevronRight className={`w-4 h-4 ml-auto transition-transform ${
-                        showMyAppsDropdown ? 'rotate-90' : ''
+                        expandedMenus[item.id] ? 'rotate-90' : ''
                       }`} />
                     )}
                   </button>
                 </li>
                 
                 {/* My Apps Dropdown */}
-                {item.id === 'my-apps' && showMyAppsDropdown && (
+                {item.id === 'my-apps' && expandedMenus[item.id] && (
                   <li className="ml-4 space-y-1">
                     {enabledModules.map((module) => {
                       const ModuleIcon = Icons[module.icon as keyof typeof Icons] as React.ComponentType<any>;
                       return (
                         <button
                           key={module.id}
-                          onClick={() => handleModuleClick(module.id)}
-                          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left transition-all duration-200 hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm"
+                          onClick={() => onItemClick(module.id)}
+                          className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left transition-all duration-200 text-sm ${
+                            activeItem === module.id
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                          }`}
                         >
                           {ModuleIcon && <ModuleIcon className="w-4 h-4" />}
                           <span>{module.name}</span>
@@ -146,34 +160,51 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick, hrModules })
                     })}
                   </li>
                 )}
-
-                {/* TLMS Admin Submenu */}
-                {item.id === 'my-apps' && showMyAppsDropdown && enabledModules.some(m => m.id === 'tlms') && (
-                  <li className="ml-4 mt-4">
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      TLMS Admin Roles
-                    </div>
-                    <div className="space-y-1 mt-2">
-                      <button
-                        onClick={() => handleModuleClick('tlms-account-settings')}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left transition-all duration-200 hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm"
-                      >
-                        <Icons.Settings className="w-4 h-4" />
-                        <span>Account Settings</span>
-                      </button>
-                      <button
-                        onClick={() => handleModuleClick('tlms-second-manager')}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left transition-all duration-200 hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm"
-                      >
-                        <Icons.Users className="w-4 h-4" />
-                        <span>Second Manager Settings</span>
-                      </button>
-                    </div>
-                  </li>
-                )}
               </React.Fragment>
             );
           })}
+
+          {/* Active App Actions - Dynamic based on current selection */}
+          {activeAppActions.length > 0 && (
+            <li className="pt-4 mt-4 border-t border-gray-200">
+              <button
+                onClick={() => toggleMenu('active-app-actions')}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+              >
+                <Icons.Zap className="w-5 h-5" />
+                <span className="font-medium">Active App Actions</span>
+                <ChevronRight className={`w-4 h-4 ml-auto transition-transform ${
+                  expandedMenus['active-app-actions'] ? 'rotate-90' : ''
+                }`} />
+              </button>
+              
+              {expandedMenus['active-app-actions'] && (
+                <div className="ml-4 mt-2 space-y-1">
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {activeModule?.name} Actions
+                  </div>
+                  {activeAppActions.map((action) => {
+                    const ActionIcon = Icons[action.icon as keyof typeof Icons] as React.ComponentType<any>;
+                    return (
+                      <button
+                        key={action.id}
+                        onClick={() => onItemClick(action.route)}
+                        className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left transition-all duration-200 text-sm ${
+                          activeItem === action.route
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        }`}
+                        title={action.description}
+                      >
+                        {ActionIcon && <ActionIcon className="w-4 h-4" />}
+                        <span>{action.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </li>
+          )}
         </ul>
       </nav>
 
