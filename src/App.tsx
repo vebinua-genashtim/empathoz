@@ -151,7 +151,7 @@ function App() {
                 <div className="mb-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">User Account Management</h2>
                   <p className="text-gray-600 mb-6">Manage user accounts, permissions, and access levels for the Training & Learning Management System.</p>
-                  
+
                   <div className="bg-blue-50 p-6 rounded-lg">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
@@ -164,36 +164,13 @@ function App() {
                         <div>
                           <label className="block text-sm font-medium text-blue-800 mb-2">Default Account Level</label>
                           <select className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="learner">Learner</option>
-                            <option value="instructor">Instructor</option>
-                            <option value="manager">Manager</option>
+                            <option value="accounting">Accounting</option>
                             <option value="admin">Admin</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-blue-800 mb-2">Auto-enrollment Policy</label>
-                          <select className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="department">By Department</option>
-                            <option value="role">By Role</option>
-                            <option value="manual">Manual Only</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-blue-800 mb-2">Account Approval Required</label>
-                          <div className="flex items-center">
-                            <input type="checkbox" className="rounded border-blue-300 text-blue-600 focus:ring-blue-500" />
-                            <span className="ml-2 text-sm text-blue-800">Require manager approval for new accounts</span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-blue-800 mb-2">Session Timeout</label>
-                          <select className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="30">30 minutes</option>
-                            <option value="60">1 hour</option>
-                            <option value="120">2 hours</option>
-                            <option value="480">8 hours</option>
+                            <option value="hr">HR</option>
+                            <option value="mancom">ManCom</option>
+                            <option value="gcoo">GCOO</option>
+                            <option value="tcoo">TCOO</option>
+                            <option value="ceo">CEO</option>
                           </select>
                         </div>
                       </div>
@@ -292,6 +269,79 @@ function App() {
                   </div>
                 </div>
                 
+                {/* Add New Account Setting Form */}
+                <div className="border-t border-gray-200 pt-8">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Add New Account Setting</h2>
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <form className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input
+                          type="email"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter email"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Account Level</label>
+                        <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                          <option value="accounting">Accounting</option>
+                          <option value="admin">Admin</option>
+                          <option value="hr">HR</option>
+                          <option value="mancom">ManCom</option>
+                          <option value="gcoo">GCOO</option>
+                          <option value="tcoo">TCOO</option>
+                          <option value="ceo">CEO</option>
+                        </select>
+                      </div>
+                      <div className="flex justify-end">
+                        <button
+                          type="submit"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          Add Account
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                {/* Permission Audit Form */}
+                <div className="border-t border-gray-200 pt-8">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Permission Audit</h2>
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <form className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Audit Notes</label>
+                        <textarea
+                          rows={4}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter any specific notes or criteria for the audit..."
+                        ></textarea>
+                      </div>
+                      <div className="flex justify-end">
+                        <button
+                          type="submit"
+                          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                        >
+                          Run Permission Audit
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+
+
+
                 <div className="border-t border-gray-200 pt-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Current Manager Assignments</h2>
                   <div className="bg-gray-50 rounded-lg p-6">
