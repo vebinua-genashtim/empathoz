@@ -27,6 +27,31 @@ function App() {
   const [activeSection, setActiveSection] = useState('my-apps');
   const [hrModules, setHrModules] = useState<HRModule[]>(HRData.hrModules);
   const [showIntegrationFlow, setShowIntegrationFlow] = useState(false);
+
+  // State for Add New Account form in TLMS Account Settings
+  const [newAccount, setNewAccount] = useState({
+    email: '',
+    name: '',
+    accountLevel: 'accounting' // Default value
+  });
+
+  const handleNewAccountChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setNewAccount(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddAccountSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate adding the account
+    console.log('Adding new account:', newAccount);
+    alert(`Account for ${newAccount.name} (${newAccount.email}) with level ${newAccount.accountLevel} added successfully! (Simulated)`);
+    // Clear form
+    setNewAccount({
+      email: '',
+      name: '',
+      accountLevel: 'accounting'
+    });
+  };
   
   // Handle integration flow visibility based on active section
   useEffect(() => {
@@ -147,39 +172,10 @@ function App() {
           <div className="flex-1 bg-gray-50 p-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">TLMS Account Settings</h1>
             <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
-              <div className="max-w-4xl">
+              <div className="max-w-4xl mx-auto">
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">User Account Management</h2>
-                  <p className="text-gray-600 mb-6">Manage user accounts, permissions, and access levels for the Training & Learning Management System.</p>
-
-                  <div className="bg-blue-50 p-6 rounded-lg">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                        <Settings className="w-5 h-5 text-white" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-blue-900">Account Configuration</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-blue-800 mb-2">Default Account Level</label>
-                          <select className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="accounting">Accounting</option>
-                            <option value="admin">Admin</option>
-                            <option value="hr">HR</option>
-                            <option value="mancom">ManCom</option>
-                            <option value="gcoo">GCOO</option>
-                            <option value="tcoo">TCOO</option>
-                            <option value="ceo">CEO</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="border-t border-gray-200 pt-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Management Actions</h2>
+                  <p className="text-gray-600 mb-6">Quick actions for managing user accounts within the TLMS.</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button className="p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors text-left">
                       <div className="flex items-center gap-3 mb-2">
@@ -204,6 +200,85 @@ function App() {
                       </div>
                       <p className="text-sm text-purple-700">Review and audit user permissions and access levels</p>
                     </button>
+                  </div>
+                </div>
+                
+                {/* NEW: Add New Account Setting Form */}
+                <div className="border-t border-gray-200 pt-8 mb-8">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Add New Account Setting</h2>
+                  <div className="bg-blue-50 p-6 rounded-lg">
+                    <form onSubmit={handleAddAccountSubmit} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-blue-800 mb-2">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={newAccount.email}
+                          onChange={handleNewAccountChange}
+                          className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="user@example.com"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-blue-800 mb-2">Name</label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={newAccount.name}
+                          onChange={handleNewAccountChange}
+                          className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="User Name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-blue-800 mb-2">Account Level</label>
+                        <select
+                          name="accountLevel"
+                          value={newAccount.accountLevel}
+                          onChange={handleNewAccountChange}
+                          className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required
+                        >
+                          <option value="accounting">Accounting</option>
+                          <option value="admin">Admin</option>
+                          <option value="hr">HR</option>
+                          <option value="mancom">ManCom</option>
+                          <option value="gcoo">GCOO</option>
+                          <option value="tcoo">TCOO</option>
+                          <option value="ceo">CEO</option>
+                        </select>
+                      </div>
+                      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Add Account</button>
+                    </form>
+                  </div>
+                </div>
+
+                {/* NEW: Permission Audit Form */}
+                <div className="border-t border-gray-200 pt-8">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Permission Audit</h2>
+                  <div className="bg-purple-50 p-6 rounded-lg">
+                    <p className="text-sm text-purple-800 mb-4">
+                      Review and audit user permissions. Select a user or role to view their access rights.
+                    </p>
+                    <form className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-purple-800 mb-2">Select User or Role</label>
+                        <select className="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                          <option value="">Select...</option>
+                          <option value="user1">User 1 (Accounting)</option>
+                          <option value="user2">User 2 (HR)</option>
+                          <option value="role-admin">Role: Admin</option>
+                          <option value="role-hr">Role: HR</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-purple-800 mb-2">Audit Report</label>
+                        <textarea readOnly rows={6} className="w-full px-3 py-2 border border-purple-200 rounded-lg bg-purple-100 text-purple-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent" value="Permissions for selected entity will appear here..."></textarea>
+                      </div>
+                      <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">Run Audit</button>
+                    </form>
                   </div>
                 </div>
               </div>
@@ -338,9 +413,6 @@ function App() {
                     </form>
                   </div>
                 </div>
-
-
-
 
                 <div className="border-t border-gray-200 pt-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Current Manager Assignments</h2>
